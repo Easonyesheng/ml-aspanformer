@@ -1,4 +1,14 @@
-from configs.data.base import cfg
+'''
+Author: EasonZhang
+Date: 2024-06-06 16:10:41
+LastEditors: EasonZhang
+LastEditTime: 2024-06-06 22:31:32
+FilePath: /SGAM/Matchers/ASpanFormer/configs/data/scannet_test_1500.py
+Description: modified
+
+Copyright (c) 2024 by EasonZhang, All Rights Reserved. 
+'''
+from Matchers.ASpanFormer.configs.data.base import cfg
 
 TEST_BASE_PATH = "assets/scannet_test_1500"
 
