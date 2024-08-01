@@ -1,4 +1,14 @@
-from src.config.default import _CN as cfg
+'''
+Author: EasonZhang
+Date: 2024-07-26 16:06:23
+LastEditors: Easonyesheng preacher@sjtu.edu.cn
+LastEditTime: 2024-07-27 11:32:40
+FilePath: /A2PM-MESA/point_matchers/ASpanFormer/configs/aspan/outdoor/aspan_test.py
+Description: path update
+
+Copyright (c) 2024 by EasonZhang, All Rights Reserved. 
+'''
+from point_matchers.ASpanFormer.src.config.default import _CN as cfg
 
 cfg.ASPAN.COARSE.COARSEST_LEVEL= [36,36]
 cfg.ASPAN.COARSE.TRAIN_RES = [832,832]

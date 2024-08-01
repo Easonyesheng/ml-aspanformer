@@ -1,4 +1,14 @@
-from configs.data.base import cfg
+'''
+Author: EasonZhang
+Date: 2024-07-26 16:06:23
+LastEditors: EasonZhang
+LastEditTime: 2024-07-26 16:12:01
+FilePath: /A2PM-MESA/point_matchers/ASpanFormer/configs/data/megadepth_test_1500.py
+Description: path update
+
+Copyright (c) 2024 by EasonZhang, All Rights Reserved. 
+'''
+from point_matchers.ASpanFormer.src.config.default import _CN as cfg
 
 TEST_BASE_PATH = "assets/megadepth_test_1500_scene_info"
 

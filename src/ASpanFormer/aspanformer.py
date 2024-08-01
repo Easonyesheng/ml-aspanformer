@@ -101,6 +101,87 @@ class ASpanFormer(nn.Module):
             data['mkpts0_f']*=data['online_resize_scale0']
             data['mkpts1_f']*=data['online_resize_scale1']
         
+    def coarse_match_mkpts_c(self, data, online_resize=False):
+        """ @Eason only use coarse level to get coarse mkpts
+        Args:
+            data (dict): {
+                'image0': (torch.Tensor): (N, 1, H, W)
+                'image1': (torch.Tensor): (N, 1, H, W)
+                'mask0'(optional) : (torch.Tensor): (N, H, W) '0' indicates a padded position
+                'mask1'(optional) : (torch.Tensor): (N, H, W)
+            }
+        """
+        if online_resize:
+            assert data['image0'].shape[0]==1 and data['image1'].shape[1]==1
+            self.resize_input(data,self.config['coarse']['train_res'])
+        else:
+            data['pos_scale0'],data['pos_scale1']=None,None
+
+        # 1. Local Feature CNN
+        data.update({
+            'bs': data['image0'].size(0),
+            'hw0_i': data['image0'].shape[2:], 'hw1_i': data['image1'].shape[2:]
+        })
+        
+        if data['hw0_i'] == data['hw1_i']:  # faster & better BN convergence
+            feats_c, feats_f = self.backbone(
+                torch.cat([data['image0'], data['image1']], dim=0))
+            (feat_c0, feat_c1), (feat_f0, feat_f1) = feats_c.split(
+                data['bs']), feats_f.split(data['bs'])
+        else:  # handle different input shapes
+            (feat_c0, feat_f0), (feat_c1, feat_f1) = self.backbone(
+                data['image0']), self.backbone(data['image1'])
+
+        data.update({
+            'hw0_c': feat_c0.shape[2:], 'hw1_c': feat_c1.shape[2:],
+            'hw0_f': feat_f0.shape[2:], 'hw1_f': feat_f1.shape[2:]
+        })
+
+        # 2. coarse-level loftr module
+        # add featmap with positional encoding, then flatten it to sequence [N, HW, C]
+        [feat_c0, pos_encoding0], [feat_c1, pos_encoding1] = self.pos_encoding(feat_c0,data['pos_scale0']), self.pos_encoding(feat_c1,data['pos_scale1'])
+        feat_c0 = rearrange(feat_c0, 'n c h w -> n c h w ')
+        feat_c1 = rearrange(feat_c1, 'n c h w -> n c h w ')
+
+        #TODO:adjust ds 
+        ds0=[int(data['hw0_c'][0]/self.coarsest_level[0]),int(data['hw0_c'][1]/self.coarsest_level[1])]
+        ds1=[int(data['hw1_c'][0]/self.coarsest_level[0]),int(data['hw1_c'][1]/self.coarsest_level[1])]
+        if online_resize:
+            ds0,ds1=[4,4],[4,4]
+
+        mask_c0 = mask_c1 = None  # mask is useful in training
+        if 'mask0' in data:
+            mask_c0, mask_c1 = data['mask0'].flatten(
+                -2), data['mask1'].flatten(-2)
+        feat_c0, feat_c1, flow_list = self.loftr_coarse(
+            feat_c0, feat_c1,pos_encoding0,pos_encoding1,mask_c0,mask_c1,ds0,ds1)
+
+        # 3. match coarse-level and register predicted offset
+        self.coarse_matching(feat_c0, feat_c1, flow_list,data,
+                             mask_c0=mask_c0, mask_c1=mask_c1)
+
+        # @Eason 
+        """
+            data = {
+            "conf_matrix": ...;
+            "mkpts0_c": torch.Tensor - [M,2]
+            "mkpts1_c": torch.Tensor - [M,2]
+            "mconf": torch.Tensor - [M]
+            }
+        """
+    
+        # # debug
+        # conf_matrix = data["conf_matrix"]
+        # mkpts0_c = data["mkpts0_c"]
+        # mkpts1_c = data["mkpts1_c"]
+        # mconf = data["mconf"]
+
+        # from loguru import logger
+
+        # logger.info(f"coarse level done.\nInput shape is {data['hw0_i']} & {data['hw1_i']} turn to coarse feature size are {data['hw0_c']} & {data['hw1_c']}")
+        # logger.info(f"Confidence Matrix shape is {conf_matrix.shape}")
+        # logger.info(f"coarse matches shapes are {mkpts0_c.shape} & {mkpts1_c.shape} with conf is {mconf.shape}")
+
     def load_state_dict(self, state_dict, *args, **kwargs):
         for k in list(state_dict.keys()):
             if k.startswith('matcher.'):

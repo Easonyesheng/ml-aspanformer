@@ -8,7 +8,7 @@ Description: modified
 
 Copyright (c) 2024 by EasonZhang, All Rights Reserved. 
 '''
-from Matchers.ASpanFormer.configs.data.base import cfg
+from point_matchers.ASpanFormer.configs.data.base import cfg
 
 TEST_BASE_PATH = "assets/scannet_test_1500"
 
