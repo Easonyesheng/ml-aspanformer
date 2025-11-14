@@ -81,10 +81,22 @@ class ASpanFormer(nn.Module):
                 -2), data['mask1'].flatten(-2)
         feat_c0, feat_c1, flow_list = self.loftr_coarse(
             feat_c0, feat_c1,pos_encoding0,pos_encoding1,mask_c0,mask_c1,ds0,ds1)
+        
 
         # 3. match coarse-level and register predicted offset
         self.coarse_matching(feat_c0, feat_c1, flow_list,data,
                              mask_c0=mask_c0, mask_c1=mask_c1)
+
+
+        # debug: show the shape of feat_c0, feat_c1
+        print(f"feat_c0 shape: {feat_c0.shape}, feat_c1 shape: {feat_c1.shape}")
+        save_path = "/opt/data/private/A2PM-git/A2PM-MESA/R1/res/match_img_emb"
+        # save as numpy
+        import numpy as np
+        import os
+        np.save(f"{save_path}/feat_c0.npy", feat_c0[0].cpu().numpy())
+        np.save(f"{save_path}/feat_c1.npy", feat_c1[0].cpu().numpy())
+        print(f"Saved feat_c0 and feat_c1 to {save_path}")
 
         # 4. fine-level refinement
         feat_f0_unfold, feat_f1_unfold = self.fine_preprocess(
