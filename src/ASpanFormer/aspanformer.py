@@ -89,14 +89,14 @@ class ASpanFormer(nn.Module):
 
 
         # debug: show the shape of feat_c0, feat_c1
-        print(f"feat_c0 shape: {feat_c0.shape}, feat_c1 shape: {feat_c1.shape}")
-        save_path = "/opt/data/private/A2PM-git/A2PM-MESA/R1/res/match_img_emb"
-        # save as numpy
-        import numpy as np
-        import os
-        np.save(f"{save_path}/feat_c0.npy", feat_c0[0].cpu().numpy())
-        np.save(f"{save_path}/feat_c1.npy", feat_c1[0].cpu().numpy())
-        print(f"Saved feat_c0 and feat_c1 to {save_path}")
+        # print(f"feat_c0 shape: {feat_c0.shape}, feat_c1 shape: {feat_c1.shape}")
+        # save_path = "/opt/data/private/A2PM-git/A2PM-MESA/R1/res/match_img_emb"
+        # # save as numpy
+        # import numpy as np
+        # import os
+        # np.save(f"{save_path}/feat_c0.npy", feat_c0[0].cpu().numpy())
+        # np.save(f"{save_path}/feat_c1.npy", feat_c1[0].cpu().numpy())
+        # print(f"Saved feat_c0 and feat_c1 to {save_path}")
 
         # 4. fine-level refinement
         feat_f0_unfold, feat_f1_unfold = self.fine_preprocess(
